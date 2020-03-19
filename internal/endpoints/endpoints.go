@@ -20,6 +20,10 @@ var FindAllProbe = Endpoint{
 	url: "/api/v1/probe",
 }
 
+var DeleteProbe = Endpoint{
+	url: "/api/v1/probe/{name}",
+}
+
 // Endpoint represent a madprobe API endpoint.
 type Endpoint struct {
 	url string

@@ -84,6 +84,34 @@ func GetAll(endpoint endpoints.Endpoint) ([]ProbeDetails, error) {
 	return pds, nil
 }
 
+// DeleteWithParam is a convenient way to apply a DELETE request to a specified endpoint with the given urlParameters.
+func DeleteWithParam(endpoint endpoints.Endpoint, urlParameters map[string]string) error {
+	client := http.DefaultClient
+	url := endpoint.GetURLWithParam(urlParameters)
+
+	req, err := http.NewRequest(http.MethodDelete, url, nil)
+	if err != nil {
+		return fmt.Errorf("error occured when creating the request. %v\n", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error occured when doing the request. %v\n", err)
+	}
+	defer resp.Body.Close()
+
+	bodyData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("could not read response body. %v\n", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return fmt.Errorf("server returned an error: %v. status code %d\n", strings.TrimSpace(string(bodyData)), resp.StatusCode)
+	}
+
+	fmt.Println(string(bodyData))
+	return nil
+}
+
 // Post is a convenient way to apply a POST request to a specified endpoint.
 func Post(endpoint endpoints.Endpoint, yamlProbe parser.HttpProbe) error {
 	// TODO: manage the creation of all probes set in the yaml. Maybe new endpoint ?
