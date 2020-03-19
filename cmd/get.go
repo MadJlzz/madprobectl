@@ -22,39 +22,53 @@ THE SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"github.com/madjlzz/madprobectl/internal/endpoints"
-	"github.com/madjlzz/madprobectl/internal/parser"
 	"github.com/madjlzz/madprobectl/internal/service"
 	"github.com/spf13/cobra"
+	"os"
+	"text/tabwriter"
 )
 
 var (
-	File string
+	// Convenient way to print a table to Stdout.
+	PrettyTab = tabwriter.NewWriter(os.Stdout, 0, 0, 3, ' ', tabwriter.TabIndent)
 )
 
-// createCmd represents the create command
-var createCmd = &cobra.Command{
-	Use:   "create",
-	Short: "Create a new probe and run it",
-	Args:  cobra.MaximumNArgs(0),
+// getCmd represents the get command
+var getCmd = &cobra.Command{
+	Use:   "get",
+	Short: "GetWithParam the detail of a specific probe or all probes",
+	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var yamlProbe parser.HttpProbe
-		err := parser.ParseYAML(File, &yamlProbe)
-		if err != nil {
-			cmd.PrintErr(err)
-			return
+		var probesDetails []service.ProbeDetails
+		if len(args) == 1 {
+			pd, err := service.GetWithParam(endpoints.GetProbe, map[string]string{"name": args[0]})
+			if err != nil {
+				cmd.PrintErr(err)
+				return
+			}
+			probesDetails = append(probesDetails, pd)
+		} else {
+			pds, err := service.GetAll(endpoints.FindAllProbe)
+			if err != nil {
+				cmd.PrintErr(err)
+				return
+			}
+			probesDetails = append(probesDetails, pds...)
 		}
-		err = service.Post(endpoints.CreateProbe, yamlProbe)
-		if err != nil {
-			cmd.PrintErr(err)
-			return
-		}
+		prettyPrintProbesDetails(probesDetails)
 	},
 }
 
+func prettyPrintProbesDetails(probesDetails []service.ProbeDetails) {
+	_, _ = fmt.Fprintln(PrettyTab, "NAME\tURL\tDELAY")
+	for _, pd := range probesDetails {
+		_, _ = fmt.Fprintf(PrettyTab, "%s\t%s\t%d\n", pd.Name, pd.URL, pd.Delay)
+	}
+	_ = PrettyTab.Flush()
+}
+
 func init() {
-	probeCmd.AddCommand(createCmd)
-	createCmd.Flags().
-		StringVarP(&File, "file", "f", "", "Configuration file describing a probe")
-	_ = createCmd.MarkFlagRequired("file")
+	probeCmd.AddCommand(getCmd)
 }

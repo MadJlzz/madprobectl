@@ -22,6 +22,68 @@ type CreateProbeRequest struct {
 	Delay uint
 }
 
+// ProbeDetails represents the data structure
+// of a probe after it has been unmarshal from JSON.
+type ProbeDetails struct {
+	Name  string
+	URL   string
+	Delay uint
+}
+
+// GetWithParam is a convenient way to apply a GET request to a specified endpoint with the given urlParameters.
+func GetWithParam(endpoint endpoints.Endpoint, urlParameters map[string]string) (ProbeDetails, error) {
+	var pd ProbeDetails
+
+	url := endpoint.GetURLWithParam(urlParameters)
+	resp, err := http.Get(url)
+	if err != nil {
+		return pd, fmt.Errorf("error occured when doing the request. %v\n", err)
+	}
+	defer resp.Body.Close()
+
+	bodyData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return pd, fmt.Errorf("could not read response body. %v\n", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return pd, fmt.Errorf("server returned an error: %v. status code %d\n", strings.TrimSpace(string(bodyData)), resp.StatusCode)
+	}
+
+	err = unmarshalToStruct(bodyData, &pd)
+	if err != nil {
+		return pd, err
+	}
+
+	return pd, nil
+}
+
+// GetAll is a convenient way to apply a GET request to a specified endpoint and retrieve a collection of probes.
+func GetAll(endpoint endpoints.Endpoint) ([]ProbeDetails, error) {
+	var pds []ProbeDetails
+
+	url := endpoint.GetURL()
+	resp, err := http.Get(url)
+	if err != nil {
+		return pds, fmt.Errorf("error occured when doing the request. %v\n", err)
+	}
+	defer resp.Body.Close()
+
+	bodyData, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return pds, fmt.Errorf("could not read response body. %v\n", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return pds, fmt.Errorf("server returned an error: %v. status code %d\n", strings.TrimSpace(string(bodyData)), resp.StatusCode)
+	}
+
+	err = unmarshalToStruct(bodyData, &pds)
+	if err != nil {
+		return pds, err
+	}
+
+	return pds, nil
+}
+
 // Post is a convenient way to apply a POST request to a specified endpoint.
 func Post(endpoint endpoints.Endpoint, yamlProbe parser.HttpProbe) error {
 	// TODO: manage the creation of all probes set in the yaml. Maybe new endpoint ?
@@ -51,5 +113,6 @@ func Post(endpoint endpoints.Endpoint, yamlProbe parser.HttpProbe) error {
 		return fmt.Errorf("server returned an error: %v. status code %d\n", strings.TrimSpace(string(bodyData)), resp.StatusCode)
 	}
 
+	fmt.Println(string(bodyData))
 	return nil
 }
