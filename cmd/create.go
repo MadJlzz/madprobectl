@@ -22,9 +22,14 @@ THE SOFTWARE.
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/madjlzz/madprobectl/internal/endpoints"
+	"github.com/madjlzz/madprobectl/internal/parser"
+	"github.com/madjlzz/madprobectl/internal/service"
 	"github.com/spf13/cobra"
+)
+
+var (
+	File string
 )
 
 // createCmd represents the create command
@@ -32,12 +37,23 @@ var createCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a new probe and run it",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("create called")
+		var yamlProbe parser.HttpProbe
+		err := parser.ParseYAML(File, &yamlProbe)
+		if err != nil {
+			cmd.PrintErr(err)
+			return
+		}
+		err = service.Post(endpoints.CreateProbe, yamlProbe)
+		if err != nil {
+			cmd.PrintErr(err)
+			return
+		}
 	},
 }
 
 func init() {
 	probeCmd.AddCommand(createCmd)
 	createCmd.Flags().
-		StringP("file", "f", "create.yml", "Configuration file describing a probe")
+		StringVarP(&File, "file", "f", "", "Configuration file describing a probe")
+	_ = createCmd.MarkFlagRequired("file")
 }

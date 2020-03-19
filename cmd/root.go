@@ -75,7 +75,8 @@ func initConfig() {
 		viper.SetConfigName(".madprobectl")
 	}
 	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
