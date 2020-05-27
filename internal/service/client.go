@@ -25,9 +25,10 @@ type CreateProbeRequest struct {
 // ProbeDetails represents the data structure
 // of a probe after it has been unmarshal from JSON.
 type ProbeDetails struct {
-	Name  string
-	URL   string
-	Delay uint
+	Name   string
+	URL    string
+	Status string
+	Delay  uint
 }
 
 // GetWithParam is a convenient way to apply a GET request to a specified endpoint with the given urlParameters.

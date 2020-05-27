@@ -62,9 +62,9 @@ var getCmd = &cobra.Command{
 }
 
 func prettyPrintProbesDetails(probesDetails []service.ProbeDetails) {
-	_, _ = fmt.Fprintln(PrettyTab, "NAME\tURL\tDELAY")
+	_, _ = fmt.Fprintln(PrettyTab, "NAME\tURL\tSTATUS\tDELAY")
 	for _, pd := range probesDetails {
-		_, _ = fmt.Fprintf(PrettyTab, "%s\t%s\t%d\n", pd.Name, pd.URL, pd.Delay)
+		_, _ = fmt.Fprintf(PrettyTab, "%s\t%s\t%s\t%d\n", pd.Name, pd.URL, pd.Status, pd.Delay)
 	}
 	_ = PrettyTab.Flush()
 }
