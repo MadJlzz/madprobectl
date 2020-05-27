@@ -1,0 +1,7 @@
+http:
+  - name: simple-service-http
+    url: http://localhost:8080/actuator/health
+    delay: 5
+  - name: other-simple-http
+    url: http://localhost:8080/actuator/health
+    delay: 10
